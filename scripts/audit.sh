@@ -29,7 +29,11 @@ if command -v docker >/dev/null && [[ -f /home/devops/app/docker-compose.yml ]];
  check 'Docker active' active "$(systemctl is-active docker)"
  db=$(docker compose --project-directory /home/devops/app ps -q db)
  check 'PostgreSQL healthy' healthy "$(docker inspect -f '{{.State.Health.Status}}' "$db" 2>/dev/null)"
- check 'PR7 loopback' 127.0.0.1:5000 "$(docker compose --project-directory /home/devops/app port app 5000)"
+ app_port=$(docker compose --project-directory /home/devops/app port app 5000)
+ db_port=$(docker compose --project-directory /home/devops/app port db 5432)
+ safe_ports=no
+ if [[ "$app_port" == 127.0.0.1:5000 && ( -z "$db_port" || "$db_port" == :0 ) ]]; then safe_ports=yes; fi
+ check 'PR7 loopback and db unpublished' yes "$safe_ports"
  check 'PR7 env permissions' 600 "$(stat -c %a /home/devops/app/.env)"
 fi
 if [[ -f /home/devops/kr2/docker-compose.yml ]]; then
