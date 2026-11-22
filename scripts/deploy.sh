@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 ROOT="$(git -C "$(dirname "${BASH_SOURCE[0]}")" rev-parse --show-toplevel)"
+if command -v cygpath >/dev/null 2>&1; then ROOT="$(cygpath -u "$ROOT")"; fi
 dry=()
 if [[ $# -gt 1 ]] || [[ $# -eq 1 && "$1" != --dry-run ]]; then echo 'usage: deploy.sh [--dry-run]' >&2; exit 1; fi
 [[ $# -eq 0 ]] || dry=(--dry-run)
