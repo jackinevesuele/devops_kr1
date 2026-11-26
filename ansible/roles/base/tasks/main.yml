@@ -8,6 +8,7 @@
     fail_msg: "Требуется Ubuntu Server 24.04 amd64"
 - name: Install base packages and remote module dependencies
   ansible.builtin.apt:
+    lock_timeout: 600
     name:
       - ca-certificates
       - curl
@@ -32,6 +33,7 @@
   register: docker_repository
 - name: Install Docker Engine
   ansible.builtin.apt:
+    lock_timeout: 600
     name:
       - docker-ce
       - docker-ce-cli

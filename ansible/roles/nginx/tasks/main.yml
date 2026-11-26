@@ -1,6 +1,7 @@
 ---
 - name: Install Nginx
   ansible.builtin.apt:
+    lock_timeout: 600
     name: nginx
     state: present
     update_cache: true
