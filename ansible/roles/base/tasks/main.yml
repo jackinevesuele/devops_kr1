@@ -1,4 +1,12 @@
 ---
+- name: Configure apt frontend lock timeout
+  ansible.builtin.copy:
+    content: |
+      DPkg::Lock::Timeout "600";
+    dest: /etc/apt/apt.conf.d/99-bosarev-lock
+    owner: root
+    group: root
+    mode: "0644"
 - name: Assert supported VM platform
   ansible.builtin.assert:
     that:
