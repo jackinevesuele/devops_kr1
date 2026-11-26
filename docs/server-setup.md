@@ -28,3 +28,15 @@ UFW active; deny incoming, allow outgoing. TCP 2222 LIMIT, 80 ALLOW, 443 ALLOW, 
 
 ## 9. Контейнеризация
 Docker Engine 29.10.0 и Compose v5.8.0 установлены из официального apt-репозитория Docker (noble stable, ключ /etc/apt/keyrings/docker.asc). Пользователь devops включён в группу docker. Исходники app находятся в репозитории на Windows, рабочая конфигурация на VM — /home/devops/app. Образы: python:3.12-slim, postgres:16-alpine; приложение devops-app:1.0 запускает Gunicorn как UID 999. PostgreSQL в сети app_backend, доступен приложению по имени db, порт 5432 не опубликован. Порт приложения 127.0.0.1:5000; секрет .env создан на сервере, права 600, devops. Именованный том app_db_data хранит PostgreSQL. restart: unless-stopped; запуск app после healthy db. Nginx /app/ проксирует на 127.0.0.1:5000 с удалением префикса, статический / сохранён. down/up сохранил счётчик 4 → 5; down -v удалил учебный том, после up получено 1. Временная публикация 0.0.0.0:5001 показала обход UFW, затем демонстрационный контейнер удалён. Остановка app дала 502 и connect() failed в error.log, запуск восстановил 200. Итоговый аудит ПР7: PASS=14 FAIL=0, код 0.
+
+## 10. Ansible
+
+Управляющий узел: bosarev-control, Ubuntu 24.04, пользователь bosarev, Host-only 192.168.96.102.
+Управляемый узел: bosarev-ci-vm, чистая копия снимка 01-clean-install, Host-only 192.168.96.101. Основная VM КР2 сохранена отдельно.
+Проект: ~/devops-course-2026/ansible. Bootstrap inventory использует student на SSH 22; prod inventory — devops и ~/.ssh/devops_vm. Пароли и закрытый ключ в Git не хранятся.
+Роли: base — пакеты и Docker; ssh — пользователь, ключ, sudo, SSH и UFW; nginx — обратный прокси; app — pull по SHA, контейнер и /health.
+Образ: ghcr.io/jackinevesuele/devops-ci-app. Точный SHA сохранён в ansible/group_vars/all.yml. Внешний HTTP 80, внутренний контейнер 5000 опубликован только на 127.0.0.1.
+Первичный запуск: ansible-playbook -i inventory/bootstrap.ini site.yml --ask-pass --ask-become-pass. Для автоматизированного повтора первичные учётные данные передавались через временный файл с правами 600 вне Git и удалялись после настройки ключевого входа.
+Повтор: cd ansible && ansible-playbook site.yml. Проверка: ansible-playbook verify.yml. Ожидается changed=0 без drift.
+При конкуренции с автоматическим обновлением пакетов роль base задаёт ожидание frontend-блокировки apt, а apt-задачи используют lock_timeout. Блокировки не удаляются, обновления не прерываются.
+

@@ -1,0 +1,6 @@
+---
+app_image: "ghcr.io/jackinevesuele/devops-ci-app"
+app_tag: "accb4984f20323bd1ae11dbcaa7e293b6fa45b0e"
+app_container_name: "devops-ci-app"
+app_host_port: 5000
+app_internal_port: 5000
